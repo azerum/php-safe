@@ -1,0 +1,149 @@
+;;;; Prelude
+
+(define (dirname path)
+    (let loop ((slash-index (- (string-length path) 1)))
+        (let ((char (string-ref path slash-index)))
+            (cond 
+                ((<= slash-index 0) "/")
+                ((char=? char #\/) (substring path 0 slash-index))
+                ((loop (- slash-index 1)))))))
+
+(define (ascend path)
+    (let loop ((p path) (result '()))
+        (if (string=? "/" p)
+            (cons p result)
+            (loop (dirname p) (cons p result)))))
+
+(define (make-literal path)
+    `(literal ,path))
+
+(define (literals list)
+    ; Turns out that `require-any` is a function
+    ; that takes any number of arguments like (literal "/a/b/c")
+    ; To construct such function call dynamically, we have to
+    ; first create a list (require-any (literal "/") (literal "/a")...),
+    ; and then eval it
+    (eval `(require-any
+        ,@(map make-literal list))))
+
+(define (no-trailing-slash path)
+    (let* 
+        ((last-index (- (string-length path) 1))
+            (last-char (string-ref path last-index)))
+        (if (char=? last-char #\/)
+            (substring path 0 last-index)
+            path)))
+
+(define (join a . b)
+    (apply string-append (append `(,(no-trailing-slash a)) '("/") b)))
+
+;;;; Sandbox profile
+
+;;; Needed params:
+; CWD - current working directory, where PHP is executed
+; HOME - home directory of the current user
+; PHP_EXE - full path to PHP executable
+; COMPOSER_HOME - composer home directory, see https://getcomposer.org/doc/03-cli.md#composer-home
+
+;;; PHP
+
+(version 1)
+(allow default)
+(deny file*)
+
+(allow file-read* 
+    (require-any
+        (subpath "/System/Library/dyld")
+        (subpath "/System/Library/Frameworks")
+        (subpath "/System/Library/PrivateFrameworks")
+        (subpath "/System/Library/CoreServices")))
+
+(allow file-read*
+    (literals (ascend (param "CWD"))))
+
+(allow file* 
+    (subpath (param "CWD")))
+
+; macOS-specific file that  stores the default text encoding and 
+; preferred language for the user
+; See https://superuser.com/a/82194/1675323
+(allow file-read* 
+    (literal 
+        (join (param "HOME") ".CFUserTextEncoding")))
+
+; Various libraries
+(allow file-read* 
+    (require-any
+        (subpath "/usr/local")
+        (subpath "/usr/lib")
+        (subpath "/usr/share/locale")))
+
+(allow file-read* 
+    (require-any
+        ; Random numbers generator
+        (literal "/dev/urandom")
+
+        ; Doesn't seem to be harmful by itself. From StackOverflow by Ismael Luceno:
+        ;
+        ; > When you open /dev/autofs_nowait and traverse a path, 
+        ; > you trigger auto-mounts, but don't wait for them to finish 
+        ; > (otherwise your process blocks until the filesystem is mounted
+        ; > or after the operation times out), so you may receive a ENOENT when 
+        ; > opening a file even if everything goes fine
+        ;
+        ; https://stackoverflow.com/a/39621783/12983861
+        (literal "/dev/autofs_nowait")))
+
+; TODO: is /etc/.mdns-debug needed?
+
+; TODO: is /AppleInternal/XBS/.isChrooted read access needed? Perhaps
+; this file exists when we are chrooted
+
+(allow file-read* 
+    (require-any
+        (literal "/etc/localtime")
+        (subpath "/var/db/timezone")))
+
+(allow file-read*
+    (literal (param "PHP_EXE")))
+
+; Temporary lock file. Not sure for what, but the file doesn't seem to compromise
+; security in any way. /tmp is symlinked to /private/tmp on macOS
+
+(allow file*
+    (require-any
+        (subpath "/tmp")
+        (subpath "/private/tmp")))
+
+; For `localhost` resolution. /etc is symlinked to /private/etc
+
+(allow file-read*
+    (literals (ascend "/etc/hosts")))
+
+(allow file-read*
+    (literals (ascend "/private/etc/hosts")))
+
+; Temp dirs. /var is symlinked to /private/var
+
+(allow file-read*
+    (literals (ascend "/var/folders")))
+
+(allow file-read*
+    (literals (ascend "/private/var/folders")))
+
+(allow file*
+    (subpath "/private/var/folders"))
+
+;;; Composer
+
+(allow file-read*
+    (subpath (param "COMPOSER_HOME")))
+
+; Cache dir
+(allow file*
+    (subpath (join (param "HOME") "Library/Caches/composer")))
+
+(allow file* (literal "/dev/null"))
+
+; TODO: what it does?
+(allow file-read* (literal "/private/var/select/sh"))

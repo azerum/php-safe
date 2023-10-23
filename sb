@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# Run any command in PHP/Composer sandbox
+# Usage:
+# ./sb cat ~/.ssh/config
+# ./sb ls /
+# ./sb php -S localhost:8080
+
+if [[ $BASH_SOURCE = */* ]]; then
+    script_dir=${BASH_SOURCE%/*}/
+else
+    script_dir=./
+fi
+
+PHP_EXE=$(php -r "echo PHP_BINARY;")
+COMPOSER_HOME=$(composer config --global home)
+
+sandbox-exec \
+    -f "$script_dir/profile.sb" \
+    -D "HOME=$HOME" \
+    -D "CWD=$(pwd)" \
+    -D "PHP_EXE=$PHP_EXE" \
+    -D "COMPOSER_HOME=$COMPOSER_HOME" \
+    "$@"
