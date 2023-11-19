@@ -14,7 +14,8 @@ The code hence can do any of these things:
 - Modify executable to inject malicious code
 
 \* I fully support Ukraine in the ongoing conflict. node-ipc is a good example of what
-dependencies of your dependencies your don't even know about can do
+dependencies of your dependencies of your dependencies can do. And you probably
+don't even know they were installed in your project
 
 # Usage
 
