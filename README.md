@@ -13,8 +13,8 @@ The code hence can do any of these things:
 - Wipe all the files you have access to, as [node-ipc did](https://snyk.io/blog/peacenotwar-malicious-npm-node-ipc-package-vulnerability/)*
 - Modify executable to inject malicious code
 
-> * - I fully support Ukraine in the ongoing conflict. node-ipc is a good example of what
-> dependencies of your dependencies your don't even know about can do
+\* I fully support Ukraine in the ongoing conflict. node-ipc is a good example of what
+dependencies of your dependencies your don't even know about can do
 
 # Usage
 
@@ -33,8 +33,8 @@ This prevents SSH key theft, wiping your desktop, stealing your ingenious-plans.
 
 However, it **doesn't** protect your from:
 
-- Wiping the entire contents of *current* directory (e.g. all your local copy of repository)
-- Accessing the Internet. Combined with previous one, your private source code can be stolen
+[] Wiping the entire contents of *current* directory (e.g. all your local copy of repository)
+[] Accessing the Internet. Combined with previous one, your private source code can be stolen
 
 It might be that due to complexity of sneaking into composer registry with malicios code,
 the above scenarious are not really worth the effort for the attacker. But keep these limitation
@@ -42,5 +42,12 @@ in mind
 
 # Contribution
 
-macOS sandbox profiles are written in TinyScheme. There's a [great PDF](https://reverse.put.as/wp-content/uploads/2011/09/Apple-Sandbox-Guide-v1.0.pdf) 
-explaining the format
+macOS sandbox profiles are written in TinyScheme (do you like LISP as much as I do?)
+
+Be sure to check this [great PDF](https://reverse.put.as/wp-content/uploads/2011/09/Apple-Sandbox-Guide-v1.0.pdf) 
+on profiles by [fG!](https://github.com/gdbinit)
+
+The top of `profile.sb` contains some useful utilities to reduce boilerplate
+
+# Licensing
+
