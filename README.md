@@ -51,3 +51,4 @@ The top of `profile.sb` contains some useful utilities to reduce boilerplate
 
 # Licensing
 
+See the comment at the top of `profile.sb`
