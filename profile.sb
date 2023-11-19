@@ -1,3 +1,6 @@
+; (c) 2023 Artem Korotenko
+; This code is licensed under MIT (see LICENSE file for details)
+
 ;;;; Prelude
 
 (define (dirname path)
